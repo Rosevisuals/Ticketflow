@@ -1,3 +1,10 @@
+//
+//  LocationPermissionView.swift
+//  Ticketflow
+//
+//  Created by Rose Visuals on 19/04/2026.
+//
+
 // LocationPermissionView.swift
 // Ticketflow
 // Matches Figma: white bg, illustration, two CTAs
@@ -10,15 +17,65 @@ struct LocationPermissionView: View {
     @EnvironmentObject var appVM: AppViewModel
     @State private var showManualPicker: Bool = false
     @State private var searchText: String = ""
+    @FocusState private var searchFocused: Bool
 
     // called when location setup is done (either way)
     var onComplete: () -> Void
 
+    
     let cities = [
-        "Canada", "Toronto", "France", "Paris",
-        "South Africa", "Nigeria", "Kenya",
-        "Uganda", "Rwanda", "Ghana",
-        "United States", "London", "Malaysia"
+        // Africa
+        "Uganda", "Kampala", "Entebbe", "Jinja",
+        "Kenya", "Nairobi", "Mombasa",
+        "Tanzania", "Dar es Salaam", "Arusha",
+        "Rwanda", "Kigali",
+        "Ethiopia", "Addis Ababa",
+        "Ghana", "Accra",
+        "Nigeria", "Lagos", "Abuja",
+        "South Africa", "Johannesburg", "Cape Town", "Durban",
+        "Egypt", "Cairo",
+        "Senegal", "Dakar",
+        "Ivory Coast", "Abidjan",
+        "Zimbabwe", "Harare",
+        "Zambia", "Lusaka",
+        "Mozambique", "Maputo",
+        "Cameroon", "Douala",
+        // Europe
+        "United Kingdom", "London", "Manchester", "Birmingham",
+        "France", "Paris", "Lyon", "Marseille",
+        "Germany", "Berlin", "Munich", "Hamburg",
+        "Netherlands", "Amsterdam",
+        "Spain", "Madrid", "Barcelona",
+        "Italy", "Rome", "Milan",
+        "Sweden", "Stockholm",
+        "Norway", "Oslo",
+        "Belgium", "Brussels",
+        "Switzerland", "Zurich", "Geneva",
+        "Portugal", "Lisbon",
+        "Poland", "Warsaw",
+        // North America
+        "United States", "New York", "Los Angeles", "Chicago",
+        "Atlanta", "Houston", "Miami", "Washington DC",
+        "Canada", "Toronto", "Vancouver", "Montreal",
+        "Mexico", "Mexico City",
+        // Asia
+        "UAE", "Dubai", "Abu Dhabi",
+        "India", "Mumbai", "Delhi", "Bangalore",
+        "China", "Beijing", "Shanghai",
+        "Japan", "Tokyo", "Osaka",
+        "Singapore",
+        "Malaysia", "Kuala Lumpur",
+        "Thailand", "Bangkok",
+        "Indonesia", "Jakarta",
+        "Philippines", "Manila",
+        "South Korea", "Seoul",
+        // Oceania
+        "Australia", "Sydney", "Melbourne", "Brisbane",
+        "New Zealand", "Auckland",
+        // South America
+        "Brazil", "São Paulo", "Rio de Janeiro",
+        "Argentina", "Buenos Aires",
+        "Colombia", "Bogotá",
     ]
 
     var filteredCities: [String] {
@@ -42,28 +99,27 @@ struct LocationPermissionView: View {
     // MARK: - Main Screen
     var mainContent: some View {
         VStack(spacing: 0) {
+
             // skip
             HStack {
                 Spacer()
-                Button("Skip") {
-                    onComplete()
-                }
-                .font(.system(size: 14))
-                .foregroundColor(Color(hex: "999999"))
+                Button("Skip") { onComplete() }
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "999999"))
             }
             .padding(.horizontal, 24)
             .padding(.top, 16)
 
-            Spacer()
-
-            // illustration
-            Image("location_illustration")
+            // image at top
+            Image("currentlocation")
                 .resizable()
                 .scaledToFit()
-                .frame(height: 220)
-                .padding(.bottom, 32)
+                .frame(maxHeight: 260)
+                .padding(.top, 8)
 
-            // heading
+            Spacer() // pushes heading down
+
+            // heading below image
             VStack(spacing: 8) {
                 Text("See What's\nNear You")
                     .font(.system(size: 28, weight: .bold))
@@ -75,17 +131,15 @@ struct LocationPermissionView: View {
                     .foregroundColor(Color(hex: "999999"))
                     .multilineTextAlignment(.center)
             }
+            .padding(.horizontal, 24)
             .padding(.bottom, 40)
 
             Spacer()
 
             // CTAs
             VStack(spacing: 12) {
-                // primary — use GPS
                 Button {
                     appVM.requestLocation()
-                    // after permission granted, onComplete fires
-                    // via appVM location delegate
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                         onComplete()
                     }
@@ -103,11 +157,9 @@ struct LocationPermissionView: View {
                     .cornerRadius(40)
                 }
 
-                // secondary — choose manually
                 Button {
-                    withAnimation(.easeInOut) {
-                        showManualPicker = true
-                    }
+                    withAnimation(.easeInOut) { showManualPicker = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { searchFocused = true }
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
@@ -151,6 +203,7 @@ struct LocationPermissionView: View {
                     TextField("Where do you want to go?", text: $searchText)
                         .font(.system(size: 14))
                         .foregroundColor(.black)
+                        .focused($searchFocused)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
@@ -187,5 +240,7 @@ struct LocationPermissionView: View {
         }
         .background(Color.white)
         .transition(.move(edge: .bottom))
+        .onAppear { searchFocused = true }
     }
 }
+

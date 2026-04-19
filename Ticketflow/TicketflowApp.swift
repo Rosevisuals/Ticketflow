@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct TicketflowApp: App {
+    @StateObject var appVM = AppViewModel()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appVM)
         }
     }
 }
