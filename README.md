@@ -19,17 +19,17 @@ Event ticketing in Uganda is fragmented. Organisers manage guest lists manually,
 
 ## Role
 
-Solo designer and developer. Responsible for the full product — research, architecture, UI/UX design, and SwiftUI implementation.
+Solo designer and developer. Responsible for the full product  research, architecture, UI/UX design, and SwiftUI implementation.
 
 ---
 
 ## Design Process
 
 ### Research & Strategy
-Started by mapping the East African events landscape — identifying that the real gap wasn't just ticketing but the connection between discovery, purchase, and venue check-in in a single native experience.
+Started by mapping the East African events landscape  identifying that the real gap wasn't just ticketing but the connection between discovery, purchase, and venue check-in in a single native experience.
 
 Identified two core user roles with fundamentally different needs:
-- **Agent (Event Organiser)** — needs dashboard, event creation, attendee management, QR scanning
+- **Agent (Event Organiser)**  needs dashboard, event creation, attendee management, QR scanning
 - **Buyer** — needs discovery, location-aware search, frictionless checkout, offline QR ticket access
 
 ### Figma Design
@@ -61,7 +61,7 @@ Views           → 13+ screens across Agent, Buyer, and Shared flows
 ### Key Architecture Decisions
 
 **Single source of truth via `AppViewModel`**
-Instead of having ViewModels talk to each other directly (tight coupling), all shared state — events, tickets, payments, location, user role — lives in `AppViewModel`. Child ViewModels are focused action handlers. When the backend arrives, only `AppViewModel` needs updating.
+Instead of having ViewModels talk to each other directly (tight coupling), all shared state  events, tickets, payments, location, user role  lives in `AppViewModel`. Child ViewModels are focused action handlers. When the backend arrives, only `AppViewModel` needs updating.
 
 **State-driven navigation via `@Published`**
 Every screen transition is driven by a published flag, not imperative navigation calls:
@@ -73,10 +73,10 @@ hasCompletedOnboarding → isAuthenticated → locationSetupDone → notificatio
 Each flag flips, the UI reacts. No navigation stack hacks.
 
 **Local-first with clear migration path**
-All data is stored locally for v1 — `UserDefaults` for session, `FileManager` documents directory for agent-uploaded event banners, in-memory arrays for events and tickets. Every storage point is isolated in `AppViewModel`, so swapping in API calls later requires changing one file, not ten.
+All data is stored locally for v1  `UserDefaults` for session, `FileManager` documents directory for agent-uploaded event banners, in memory arrays for events and tickets. Every storage point is isolated in `AppViewModel`, so swapping in API calls later requires changing one file, not ten.
 
 **Dual image loading**
-`EventImageView` tries the file system first (agent-uploaded images), then falls back to the asset catalogue (sample/test images). Agents pick banners from their photo library via `PhotosPicker` — images are saved to the documents directory and the file path stored in `EventModel.bannerImagePath`.
+`EventImageView` tries the file system first (agent-uploaded images), then falls back to the asset catalogue (sample/test images). Agents pick banners from their photo library via `PhotosPicker`  images are saved to the documents directory and the file path stored in `EventModel.bannerImagePath`.
 
 ---
 
@@ -117,21 +117,21 @@ Launch
 
 ### Buyer Flow
 - Splash screen with animated logo sequence
-- Onboarding — welcome illustration + role selection
+- Onboarding  welcome illustration + role selection
 - Auth — step-by-step email → password → date of birth
-- Location permission — GPS or manual city/country picker (60+ locations)
+- Location permission GPS or manual city/country picker (60+ locations)
 - Notification preference selection
-- Discover home — full-bleed hero poster, filter chips, weekly events scroll
-- Event detail — full-bleed poster, event info, refund policy, floating CTA
-- My Tickets — QR code access (in progress)
-- Checkout — tier selection, quantity, MTN MoMo / Airtel Money (in progress)
+- Discover home  full-bleed hero poster, filter chips, weekly events scroll
+- Event detail  full-bleed poster, event info, refund policy, floating CTA
+- My Tickets  QR code access (in progress)
+- Checkout  tier selection, quantity, MTN MoMo / Airtel Money (in progress)
 
 ### Agent Flow
-- Agent dashboard — event stats, ticket sales, revenue summary
-- Create event — form with banner image upload via PhotosPicker
-- Event detail — attendee list, ticket breakdown
+- Agent dashboard  event stats, ticket sales, revenue summary
+- Create event  form with banner image upload via PhotosPicker
+- Event detail  attendee list, ticket breakdown
 - Edit event
-- QR scanner — verify tickets at the door (in progress)
+- QR scanner  verify tickets at the door (in progress)
 
 ### Shared
 - Profile / account settings
@@ -152,11 +152,11 @@ Launch
 
 ## Lessons Learned
 
-**Design before you build.** Having 13 screens fully designed in Figma before touching Xcode meant architectural decisions were made with full context — not discovered mid-build.
+**Design before you build.** Having 13 screens fully designed in Figma before touching Xcode meant architectural decisions were made with full context not discovered mid-build.
 
 **State management is architecture.** The decision to use `@Published` flags for navigation instead of programmatic `NavigationPath` manipulation made the entire flow easier to reason about, debug, and extend.
 
-**Local-first is a feature, not a compromise.** Building offline-capable from day one means the app works in low-connectivity environments — which matters in Kampala.
+**Local-first is a feature, not a compromise.** Building offline-capable from day one means the app works in low-connectivity environments  which matters in Kampala.
 
 **Type consistency saves hours.** Every model ID is `UUID`. Every foreign key reference is `UUID`. One inconsistency (`eventId: String` instead of `UUID`) caused a cascade of compiler errors that took longer to debug than it would have taken to be consistent from the start.
 
