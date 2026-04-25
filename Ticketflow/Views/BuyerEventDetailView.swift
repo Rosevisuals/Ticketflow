@@ -2,13 +2,8 @@
 //  BuyerEventDetailView.swift
 //  Ticketflow
 //
-//  Created by Rose Visuals on 19/04/2026.
+//  Created by Rose Visuals on 13/04/2026.
 //
-
-// BuyerEventDetailView.swift
-// Ticketflow
-// Matches Figma: full banner top, event info, refund policy,
-// price + Get Tickets pink CTA
 
 import SwiftUI
 
@@ -16,7 +11,6 @@ struct BuyerEventDetailView: View {
     let event: EventModel
     @EnvironmentObject var appVM: AppViewModel
     @Environment(\.dismiss) var dismiss
-    @State private var selectedTier: TicketTier = .regular
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -25,25 +19,22 @@ struct BuyerEventDetailView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
 
-                    // full banner
+                    // full bleed poster — no corner radius at top
                     ZStack(alignment: .topLeading) {
-                        Group {
-                            if let path = event.bannerImagePath,
-                               let data = FileManager.default.contents(atPath: path),
-                               let uiImage = UIImage(data: data) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                            } else {
-                                LinearGradient(
-                                    colors: [Color(hex: "1f0a18"), Color(hex: "3d1a2e")],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            }
+                        EventImageView(path: event.bannerImagePath, height: 400)
+                            .frame(maxWidth: .infinity)
+
+                        // dark gradient at very bottom of poster
+                        VStack {
+                            Spacer()
+                            LinearGradient(
+                                colors: [Color.clear, Color(hex: "111111")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                            .frame(height: 120)
                         }
-                        .frame(height: 300)
-                        .clipped()
+                        .frame(height: 400)
 
                         // back button
                         Button { dismiss() } label: {
@@ -55,114 +46,157 @@ struct BuyerEventDetailView: View {
                                 .clipShape(Circle())
                         }
                         .padding(.top, 56)
-                        .padding(.leading, 20)
+                        .padding(.leading, 16)
                     }
+                    .frame(height: 400)
 
-                    // content card
+                    // content on dark background
                     VStack(alignment: .leading, spacing: 0) {
 
-                        // title + meta
+                        // event title
                         Text(event.title)
-                            .font(.system(size: 22, weight: .bold))
+                            .font(.system(size: 26, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.bottom, 12)
+                            .padding(.bottom, 14)
 
-                        // date
-                        EventMetaRow(
-                            icon: "calendar",
-                            text: formattedDate(event.date)
-                        )
-                        // location
-                        EventMetaRow(
-                            icon: "mappin.and.ellipse",
-                            text: event.location
-                        )
-                        // limited badge
-                        if appVM.availableCapacity(for: event.id) < 20 {
-                            EventMetaRow(
-                                icon: "ticket",
-                                text: "Limited Tickets",
-                                color: Color(hex: "D4537E")
-                            )
+                        // date — green
+                        HStack(spacing: 8) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: "2FB86E"))
+                            Text(formattedDate(event.date))
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color(hex: "2FB86E"))
                         }
+                        .padding(.bottom, 8)
 
-                        Divider()
-                            .background(Color(hex: "222222"))
-                            .padding(.vertical, 16)
+                        // venue
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.down.to.line")
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: "888888"))
+                            Text(event.location)
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: "888888"))
 
-                        // event info
-                        Text("Event info")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "5DCAA5"))
-                            .padding(.bottom, 8)
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            InfoBullet(text: "Doors will be open by 7:00pm")
-                            InfoBullet(text: "This event is 18+")
-                            InfoBullet(
-                                text: "You can get a refund if:",
-                                subBullets: [
-                                    "It's within 24 hours of buying tickets",
-                                    "The event is cancelled or rescheduled"
-                                ]
-                            )
-                            InfoBullet(text: "Presented by AURA")
+                            // limited tickets badge
+                            if appVM.availableCapacity(for: event.id) < 30 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "ticket")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(Color(hex: "5DCAA5"))
+                                    Text("Limited Tickets")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundColor(Color(hex: "5DCAA5"))
+                                }
+                                .padding(.leading, 4)
+                            }
                         }
                         .padding(.bottom, 24)
 
-                        // ticket tier selection
-                        Text("Select ticket")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color(hex: "5DCAA5"))
-                            .padding(.bottom, 10)
+                        // divider
+                        Rectangle()
+                            .fill(Color(hex: "222222"))
+                            .frame(height: 1)
+                            .padding(.bottom, 20)
 
-                        VStack(spacing: 8) {
-                            ForEach(TicketTier.allCases, id: \.self) { tier in
-                                TierRow(
-                                    tier: tier,
-                                    isSelected: selectedTier == tier,
-                                    capacity: appVM.availableCapacity(for: event.id)
-                                )
-                                .onTapGesture {
-                                    withAnimation(.spring()) { selectedTier = tier }
+                        // event info section
+                        Text("Event info")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.bottom, 16)
+
+                        // bullet rows — matches Figma icons exactly
+                        VStack(alignment: .leading, spacing: 14) {
+
+                            EventInfoRow(
+                                icon: "door.left.hand.open",
+                                text: "Doors will be open by 7:00pm",
+                                textColor: Color(hex: "CCCCCC")
+                            )
+
+                            EventInfoRow(
+                                icon: "person.circle",
+                                text: "This event is 18+",
+                                textColor: Color(hex: "666666")
+                            )
+
+                            // refund row with sub bullets
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(alignment: .top, spacing: 10) {
+                                    Image(systemName: "creditcard")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color(hex: "666666"))
+                                        .frame(width: 18)
+                                    Group {
+                                        Text("You can ")
+                                            .foregroundColor(Color(hex: "666666")) +
+                                        Text("get a refund")
+                                            .foregroundColor(.white)
+                                            .fontWeight(.semibold) +
+                                        Text(" if:")
+                                            .foregroundColor(Color(hex: "666666"))
+                                    }
+                                    .font(.system(size: 13))
+                                }
+
+                                // sub bullet
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text("•")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "555555"))
+                                        .padding(.leading, 28)
+                                    Text("It's within 24 hours of buying tickets")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Color(hex: "666666"))
                                 }
                             }
+
+                            EventInfoRow(
+                                icon: "megaphone",
+                                text: "Presented by AURA",
+                                textColor: Color(hex: "666666")
+                            )
                         }
                         .padding(.bottom, 100) // space for floating CTA
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 18)
                     .padding(.top, 20)
                 }
             }
+            .ignoresSafeArea(edges: .top)
 
-            // floating CTA
+            // floating bottom CTA — matches Figma exactly
+            // "Get Tickets" left, price + button right
             VStack(spacing: 0) {
-                Divider().background(Color(hex: "222222"))
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Total")
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "888888"))
-                        Text("UGX \(tierPrice(selectedTier))")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(Color(hex: "D4537E"))
-                    }
+                // subtle top border
+                Rectangle()
+                    .fill(Color(hex: "222222"))
+                    .frame(height: 1)
+
+                HStack(alignment: .center) {
+                    Text("Get Tickets")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+
                     Spacer()
-                    Button {
-                        // navigate to checkout
-                    } label: {
-                        Text("Get Tickets")
-                            .font(.system(size: 15, weight: .semibold))
+
+                    Button {} label: {
+                        Text("UGX 5,000")
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 32)
+                            .padding(.horizontal, 28)
                             .padding(.vertical, 14)
-                            .background(Color(hex: "D4537E"))
-                            .cornerRadius(30)
+                            .background(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .fill(Color(hex: "D4537E"))
+                            )
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Color(hex: "111111"))
+                .padding(.bottom, 8)
             }
         }
         .ignoresSafeArea(edges: .bottom)
@@ -170,125 +204,27 @@ struct BuyerEventDetailView: View {
 
     func formattedDate(_ date: Date) -> String {
         let f = DateFormatter()
-        f.dateFormat = "EEEE d MMMM · h:mm a"
+        f.dateFormat = "EEEE d MMMM"
         return f.string(from: date)
-    }
-
-    func tierPrice(_ tier: TicketTier) -> String {
-        switch tier {
-        case .regular: return "5,000"
-        case .vip: return "15,000"
-        case .earlybird: return "3,000"
-        }
     }
 }
 
-// MARK: - Supporting Components
-
-struct EventMetaRow: View {
+// MARK: - Event Info Row
+struct EventInfoRow: View {
     let icon: String
     let text: String
-    var color: Color = Color(hex: "888888")
+    var textColor: Color = Color(hex: "888888")
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .top, spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 13))
-                .foregroundColor(color)
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "666666"))
                 .frame(width: 18)
             Text(text)
                 .font(.system(size: 13))
-                .foregroundColor(color)
+                .foregroundColor(textColor)
+                .lineSpacing(3)
         }
-        .padding(.bottom, 8)
-    }
-}
-
-struct InfoBullet: View {
-    let text: String
-    var subBullets: [String] = []
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top, spacing: 8) {
-                Circle()
-                    .fill(Color(hex: "888888"))
-                    .frame(width: 4, height: 4)
-                    .padding(.top, 6)
-                Text(text)
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: "CCCCCC"))
-            }
-            if !subBullets.isEmpty {
-                ForEach(subBullets, id: \.self) { bullet in
-                    HStack(alignment: .top, spacing: 8) {
-                        Text("•")
-                            .font(.system(size: 10))
-                            .foregroundColor(Color(hex: "555555"))
-                            .padding(.leading, 16)
-                        Text(bullet)
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: "888888"))
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct TierRow: View {
-    let tier: TicketTier
-    let isSelected: Bool
-    let capacity: Int
-
-    var tierName: String {
-        switch tier {
-        case .regular: return "Regular"
-        case .vip: return "VIP"
-        case .earlybird: return "Early Bird"
-        }
-    }
-
-    var tierDesc: String {
-        switch tier {
-        case .regular: return "General admission"
-        case .vip: return "Front row + drinks"
-        case .earlybird: return "Limited availability"
-        }
-    }
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(tierName)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                Text(tierDesc)
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "666666"))
-            }
-            Spacer()
-            Circle()
-                .fill(isSelected ? Color(hex: "D4537E") : Color.clear)
-                .frame(width: 18, height: 18)
-                .overlay(
-                    Circle().stroke(
-                        isSelected ? Color(hex: "D4537E") : Color(hex: "444444"),
-                        lineWidth: 1.5
-                    )
-                )
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(isSelected ? Color(hex: "D4537E").opacity(0.1) : Color(hex: "1a1a1a"))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(
-                            isSelected ? Color(hex: "D4537E").opacity(0.5) : Color.clear,
-                            lineWidth: 1
-                        )
-                )
-        )
     }
 }
